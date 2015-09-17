@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:si="http://www.springframework.org/schema/integration"
+       xmlns:si-couchdb="http://www.opencredo.com/schema/couchdb/integration"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.opencredo.com/schema/couchdb/integration http://www.opencredo.com/schema/couchdb/integration/opencredo-integration-couchdb.xsd
+						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<import resource="classpath:test-couchdb.xml"/>
+
+    <si:channel id="input"/>
+
+    <si-couchdb:outbound-channel-adapter id="couchdb" channel="input"
+                                         database-url="${couchdb.url}${couchdb.testDatabase}"
+            document-id-expression="'test_id'"/>
+
+    <bean class="org.springframework.integration.core.MessagingTemplate">
+        <constructor-arg ref="input"/>
+    </bean>
+
+</beans>

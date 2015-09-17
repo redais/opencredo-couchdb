@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:si="http://www.springframework.org/schema/integration"
+       xmlns:si-http="http://www.springframework.org/schema/integration/http"
+       xmlns:si-couchdb="http://www.opencredo.com/schema/couchdb/integration"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+						http://www.opencredo.com/schema/couchdb/integration http://www.opencredo.com/schema/couchdb/integration/opencredo-integration-couchdb.xsd
+						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+						http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+
+
+	<import resource="classpath:test-couchdb.xml"/>
+
+    <si:channel id="input">
+        <si:queue capacity="1"/>
+    </si:channel>
+
+    <si-couchdb:outbound-channel-adapter id="couchdb" channel="input"
+                                         database-url="${couchdb.url}/${couchdb.testDatabase}">
+        <si:poller fixed-rate="1000"/>
+    </si-couchdb:outbound-channel-adapter>
+
+    <bean class="org.springframework.integration.core.MessagingTemplate">
+        <constructor-arg ref="input"/>
+    </bean>
+
+    <si:channel id="testRequestChannel"/>
+
+    <si-http:outbound-gateway url="${couchdb.url}${couchdb.testDatabase}{id}"
+                              http-method="GET"
+                              request-channel="testRequestChannel"
+                              expected-response-type="org.opencredo.couchdb.DummyDocument">
+        <si-http:uri-variable name="id" expression="payload.toString()"/>
+    </si-http:outbound-gateway>
+
+
+    <!-- write/read synchronisation -->
+
+    <bean id="latch" class="java.util.concurrent.CountDownLatch">
+        <constructor-arg value="1"/>
+    </bean>
+
+    <aop:config>
+        <aop:aspect ref="latch">
+            <aop:after method="countDown" pointcut="target(org.opencredo.couchdb.outbound.CouchDbSendingMessageHandler) and execution(* *handleMessage(..))"/>
+            <aop:before method="await" pointcut="bean(testRequestChannel) and execution(* *send(..))"/>
+        </aop:aspect>
+    </aop:config>
+
+
+</beans>

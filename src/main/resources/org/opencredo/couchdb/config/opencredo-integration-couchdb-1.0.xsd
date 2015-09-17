@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2011 the original author or authors
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema xmlns="http://www.opencredo.com/schema/couchdb/integration" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+    xmlns:integration="http://www.springframework.org/schema/integration"
+    targetNamespace="http://www.opencredo.com/schema/couchdb/integration"
+	elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+    <xsd:import namespace="http://www.springframework.org/schema/integration"
+                schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+
+    <xsd:element name="outbound-channel-adapter">
+        <xsd:complexType>
+            <xsd:annotation>
+                <xsd:documentation>
+                    Configures an outbound Channel Adapter that sends Messages as CouchDB documents.
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:sequence>
+                <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+            </xsd:sequence>
+            <xsd:attribute name="id" type="xsd:string"/>
+            <xsd:attribute name="channel" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="exceptions-counter" type="xsd:string">
+                <xsd:annotation>
+                	  <xsd:documentation><![CDATA[
+        Specifies the counter to use to count causing exeptions by CouchDB operations.
+                    ]]></xsd:documentation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="com.prime.common.statistics.VolatileCounter"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="order" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+        Specifies the order for invocation when this endpoint is connected as a
+        subscriber to a SubscribableChannel.
+                    ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="database-url" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+        Specifies the URL of the couchdb database to connect to.
+                    ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="document-operations" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+        Specifies a custom DocumentCreator to use to communicate with CouchDB.
+                    ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="document-id-expression" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+        Specifies an Spel expression used to generate the id of the document. Defaults to the id of the Message object.
+                    ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="auto-startup" type="xsd:string"/>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="id-to-document-transformer">
+        <xsd:complexType>
+            <xsd:annotation>
+                <xsd:documentation>Configures a transformer that transforms an id, received as
+                    a Message payload, into a CouchDB document.
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:attribute name="id" type="xsd:string"/>
+            <xsd:attribute name="input-channel" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="output-channel" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="database-url" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+        Specifies the URL of the couchdb database to connect to.
+                    ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="document-operations" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+        Specifies a custom RestOperations to use to communicate with CouchDB.
+                    ]]></xsd:documentation>
+                    <!-- doesn't play well with mocks -->
+                    <!--<xsd:appinfo>-->
+                        <!--<tool:annotation kind="ref">-->
+                            <!--<tool:expected-type type="org.springframework.web.client.RestOperations"/>-->
+                        <!--</tool:annotation>-->
+                    <!--</xsd:appinfo>-->
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="document-type" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Specifies type of the document to map to.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="url-to-document-transformer">
+        <xsd:complexType>
+            <xsd:annotation>
+                <xsd:documentation>Configures a transformer that transforms a url, received as
+                    a Message payload, into a CouchDB document.
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:attribute name="id" type="xsd:string"/>
+            <xsd:attribute name="input-channel" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="output-channel" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="document-operations" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+        Specifies a custom RestOperations to use to communicate with CouchDB.
+                    ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="document-type" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Specifies type of the document to map to.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="inbound-channel-adapter">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+                Configures an inbound Channel Adapter that retrieves either the changed documents or all documents of a CouchDB
+                database or view and sends Messages whose payloads are instances of java.net.URI with which the document can be retrieved.
+                If you are interested in all documents, set 'all-documents' to true and specify a 'database-url' which should either be
+                the URL of a view (/dbname/_design/mydesigndoc/_view/myviewname) or an 'all docs' URL (/dbname/_all_docs).
+            ]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+            </xsd:sequence>
+            <xsd:attribute name="database-url" type="xsd:string"/>
+            <xsd:attribute name="changes-operations" type="xsd:string"/>
+            <xsd:attribute name="id" type="xsd:string"/>
+            <xsd:attribute name="channel" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+            <xsd:attribute name="all-documents" type="xsd:string" default="false">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+        If true, not only the changes, but all documents (i.e. their IDs) are retrieved; specify a view or _all_docs URL as database-url. Default is false.
+                    ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="all-documents-limit" type="xsd:integer" default="10">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+        The number of IDs to retrieve at once from the database. Default is 10.
+                    ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>
